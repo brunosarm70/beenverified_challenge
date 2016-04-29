@@ -1,5 +1,6 @@
 package: github.com/brunosarm70/beenverified-challenge
 import:
+- package: github.com/mattn/go-sqlite3
 - package: goji.io
   subpackages:
   - pat

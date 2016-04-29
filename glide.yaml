@@ -1,0 +1,8 @@
+package: github.com/brunosarm70/beenverified-challenge
+import:
+- package: goji.io
+  subpackages:
+  - pat
+- package: golang.org/x/net
+  subpackages:
+  - context

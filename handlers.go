@@ -10,12 +10,13 @@ import (
 	"golang.org/x/net/context"
 )
 
-func genres(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+
+func get_genres_json_response(ctx context.Context, w http.ResponseWriter, r *http.Request, query string){
 	// Open database connection
 	db, err := sql.Open("sqlite3", "jrdd.db")
 
 	// Make the query
-	rows, err := db.Query("SELECT g.name, COUNT(g.ID), SUM(s.length) FROM genres g INNER JOIN songs s ON s.genre = g.ID GROUP BY g.ID")
+	rows, err := db.Query(query)
 
 	// Declare the variables to be used
   	var genre string
@@ -38,19 +39,32 @@ func genres(ctx context.Context, w http.ResponseWriter, r *http.Request) {
     // Close database connection
     db.Close()
 
-    json.NewEncoder(w).Encode(genres)
+
+    var json_marshal, err2 = json.MarshalIndent(genres, "", "  ")
+    if err2 != nil {
+		fmt.Println(err2)
+	}
+    fmt.Fprintf(w, string(json_marshal))
 }
 
 
-func songs_by_name(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	// Get the name of the song
-	name := pat.Param(ctx, "name")
+
+
+func genres(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	var query = "SELECT g.name, COUNT(g.ID), SUM(s.length) FROM genres g INNER JOIN songs s ON s.genre = g.ID GROUP BY g.ID"
+	get_genres_json_response(ctx, w, r, query)
+}
+
+
+
+
+func get_songs_json_response(ctx context.Context, w http.ResponseWriter, r *http.Request, query string){
 
 	// Open database connection
 	db, err := sql.Open("sqlite3", "jrdd.db")
 
 	// Make the query
-	rows, err := db.Query("SELECT s.song, s.artist, g.name, s.length FROM songs s INNER JOIN genres g ON g.ID = s.genre WHERE s.song = '" + name + "'")
+	rows, err := db.Query(query)
 
 	// Declare the variables to be used
   	var song string
@@ -78,81 +92,44 @@ func songs_by_name(ctx context.Context, w http.ResponseWriter, r *http.Request) 
     db.Close()
 
     // Send the list of json's
-    json.NewEncoder(w).Encode(songs)
+    var json_marshal, err2 = json.MarshalIndent(songs, "", "  ")
+    if err2 != nil {
+		fmt.Println(err2)
+	}
+    fmt.Fprintf(w, string(json_marshal))
+}
+
+
+
+
+
+func songs_by_name(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	// Get the name of the song
+	name := pat.Param(ctx, "name")
+
+	// Make the query
+	var query = "SELECT s.song, s.artist, g.name, s.length FROM songs s INNER JOIN genres g ON g.ID = s.genre WHERE s.song = '" + name + "'"
+	get_songs_json_response(ctx, w, r, query)
+	
 }
 
 func songs_by_artist(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	artist_name := pat.Param(ctx, "artist")
 
-	// Open database connection
-	db, err := sql.Open("sqlite3", "jrdd.db")
-
 	// Make the query
-	rows, err := db.Query("SELECT s.song, s.artist, g.name, s.length FROM songs s INNER JOIN genres g ON g.ID = s.genre WHERE s.artist = '" + artist_name + "'")
-
-	// Declare the variables to be used
-  	var song string
-	var artist string
-	var genre string
-	var length int
-
-
-	songs := Songs{}
-
-    for rows.Next(){
-    	err = rows.Scan(&song, &artist, &genre, &length)	
-	    aux_song := Song{Artist: artist, Genre: genre, Length: length, Name: song}
-	    songs = append(songs, aux_song)
-    }    
-	
-	// Check por errors
-	if err != nil {
-		fmt.Println(err)
-	}
-    
-    // Close database connection
-    db.Close()
-
-    json.NewEncoder(w).Encode(songs)
+	var query = "SELECT s.song, s.artist, g.name, s.length FROM songs s INNER JOIN genres g ON g.ID = s.genre WHERE s.artist = '" + artist_name + "'"
+	get_songs_json_response(ctx, w, r, query)
 
 }
 
 func songs_by_genre(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	genre_name := pat.Param(ctx, "genre")
 
-	// Open database connection
-	db, err := sql.Open("sqlite3", "jrdd.db")
-
 	// Make the query
-	rows, err := db.Query("SELECT s.song, s.artist, g.name, s.length FROM songs s INNER JOIN genres g ON g.ID = s.genre WHERE g.name = '" + genre_name + "'")
-
-	// Declare the variables to be used
-  	var song string
-	var artist string
-	var genre string
-	var length int
-
-
-	songs := Songs{}
-
-    for rows.Next(){
-    	err = rows.Scan(&song, &artist, &genre, &length)	
-	    aux_song := Song{Artist: artist, Genre: genre, Length: length, Name: song}
-	    songs = append(songs, aux_song)
-    }    
-	
-	// Check por errors
-	if err != nil {
-		fmt.Println(err)
-	}
-    
-    // Close database connection
-    db.Close()
-
-    json.NewEncoder(w).Encode(songs)
+	var query = "SELECT s.song, s.artist, g.name, s.length FROM songs s INNER JOIN genres g ON g.ID = s.genre WHERE g.name = '" + genre_name + "'"
+	get_songs_json_response(ctx, w, r, query)
 
 }
-
 
 
 func songs_by_length(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -164,35 +141,7 @@ func songs_by_length(ctx context.Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Open database connection
-	db, err := sql.Open("sqlite3", "jrdd.db")
-
 	// Make the query
-	rows, err := db.Query("SELECT s.song, s.artist, g.name, s.length FROM songs s INNER JOIN genres g ON g.ID = s.genre WHERE s.length <= " + max_length + " AND s.length >= " + min_length + " ORDER BY s.length ASC")
-
-	// Declare the variables to be used
-  	var song string
-	var artist string
-	var genre string
-	var length int
-
-
-	songs := Songs{}
-
-    for rows.Next(){
-    	err = rows.Scan(&song, &artist, &genre, &length)
-	    aux_song := Song{Artist: artist, Genre: genre, Length: length, Name: song}
-	    songs = append(songs, aux_song)
-    }    
-	
-	// Check por errors
-	if err != nil {
-		fmt.Println(err)
-	}
-    
-    // Close database connection
-    db.Close()
-
-    json.NewEncoder(w).Encode(songs)
-
+	var query = "SELECT s.song, s.artist, g.name, s.length FROM songs s INNER JOIN genres g ON g.ID = s.genre WHERE s.length <= " + max_length + " AND s.length >= " + min_length + " ORDER BY s.length ASC"
+    get_songs_json_response(ctx, w, r, query)
 }

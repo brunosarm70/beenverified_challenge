@@ -57,6 +57,32 @@ $GOPATH/bin/beenverified-challenge
 ```
 Now the server will be listening on 127.0.0.1 port 8000.
 
+Note: the downloaded database must be on the GOPATH.
+
+### Testing
+
+To test properly the API, make sure you are in the testing folder:
+
+```
+cd $GOPATH/src/github.com/brunosarm70/beenverified-challenge/test
+```
+And then run the following command to see the results in the terminal:
+```
+go run testing.go
+```
+
+### API reference
+
+#### Search songs by:
+
+Name: localhost:8000/songs_by_name/:name
+Artist: localhost:8000/songs_by_artist/:artist
+Genre: localhost:8000/songs_by_genre/:genre
+Length: localhost:8000/songs_by_length/:minimun/:maximum
+
+#### Search genres:
+Genres: localhost:8000/genres
+
 
 ## Authors
 

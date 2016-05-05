@@ -76,8 +76,11 @@ go run testing.go
 #### Search songs by:
 
 Name: localhost:8000/songs_by_name/:name
+
 Artist: localhost:8000/songs_by_artist/:artist
+
 Genre: localhost:8000/songs_by_genre/:genre
+
 Length: localhost:8000/songs_by_length/:minimun/:maximum
 
 #### Search genres:
